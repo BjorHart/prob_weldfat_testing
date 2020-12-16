@@ -366,8 +366,6 @@ def apply_mean_stress_theory(mean_stress_theory,sm,rng,sn_0,r_m,r_y):
     return rng
 
 start = time.time()
-# for i in fat:
-#     input_serie_2["fatigue_class"]["fat"] = i
 WeldFat(timestamp, _componentId, json_input,response)
 end = time.time()
 print(end - start)

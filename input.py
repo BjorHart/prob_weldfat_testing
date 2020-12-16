@@ -15,12 +15,12 @@ def input():
     input_serie_2 = {}
     input_serie_2['method'] = 'Nominal Fatigue' 
     input_serie_2['fatigue_class'] = {
-        'fat':100, # ["normal",100.0,10],
+        'fat':100, #["normal",100.0,10],
         'fatFact': 1.0,
-        'n_fat': ["normal",2000000.0,1000],
+        'n_fat': 2e6,#["normal",2000000.0,1000],
         'n_c': 10000000.0,
         'm_1': 5,#["normal",5.0,1],
-        'm_2': 22.0,
+        'm_2': ["normal",22.0,1]
         }
     input_serie_2['stress_unit'] = 'MPa'
     input_serie_2['serie_data'] = {'series': series}

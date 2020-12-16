@@ -166,11 +166,11 @@ def fn(cycles,rng,sm,cum_dmg,sn_0,sn_c,sn_cutoff,fat, n_fat, n_c, m_1, m_2,fat_f
         input function to the loop over all bins
     """
     cum_damage = np.float64(0)
-    log10_sn_1 = tt.log10(fat * fat_fact) + (tt.log10(n_fat) - tt.log10(n_0)) / m_1
+    log10_sn_1 = (tt.log10(fat * fat_fact) + (tt.log10(n_fat) - tt.log10(n_0)) / m_1).astype("float64")
     sn_1 = 10 ** log10_sn_1
-    sn_0 = 10 ** (log10_sn_1 + tt.log10(n_0) / m_0)
-    sn_c = 10 ** (tt.log10(fat * fat_fact) - (tt.log10(n_c) - tt.log10(n_fat)) / m_1)
-    sn_cutoff = sn_cutoff = 10 ** (tt.log10(sn_c) - (tt.log10(n_cutoff)-tt.log10(n_c))/m_2)
+    sn_0 = (10 ** (log10_sn_1 + tt.log10(n_0) / m_0)).astype("float64")
+    sn_c = (10 ** (tt.log10(fat * fat_fact) - (tt.log10(n_c) - tt.log10(n_fat)) / m_1)).astype("float64")
+    sn_cutoff = (10 ** (tt.log10(sn_c) - (tt.log10(n_cutoff)-tt.log10(n_c))/m_2)).astype("float64")
     life = 0
     log10_life = 0
     dmg_per_bin = 0
@@ -198,7 +198,7 @@ def fn(cycles,rng,sm,cum_dmg,sn_0,sn_c,sn_cutoff,fat, n_fat, n_c, m_1, m_2,fat_f
     s_factor_stress_per_bin = tt.min([100.0, s_nb / tt.max([1, rng])])
 
 
-    return  dmg_per_bin,sn_0,sn_c,sn_cutoff# y = prev_result
+    return  dmg_per_bin,sn_0,sn_c,sn_cutoff
 
 
 def scan(cycles,rng,sm,fat: int=1, n_fat: int = 2000000, n_c: int=10000000, m_1:int=3, m_2:int=22,fat_fact: int=1, n_0: int=314018, m_0: int=5, n_cutoff: int=10000000000,r_y:int=0, r_m:int=0, m_s_th:int=0):
@@ -238,9 +238,9 @@ def calculate_weldfat(**kwargs):
             if type(value)==list and (value[0] in ["normal","halfnormal","lognormal","uniform"]):
                 distributed=True # triggers sampling process
                 kwargs[key] = dists[value[0]](str(key)+ "dist",mu=value[1],sd=value[2])
-            else:
-                kwargs[key] = value
-       
+        else:
+            hei=1
+           
         dmg_per_bin,sn_0,sn_c,sn_cutoff = scan(cycles,rng,sm,**kwargs)
         sn_0 = pm.Deterministic("sn_0", sn_0)
         sn_c = pm.Deterministic("sn_c", sn_c)
@@ -300,7 +300,7 @@ def plot_trace(trace,kwargs):
                 plt.plot([n_1,n_c[i],n_cutoff],[sn_0,sn_c,sn_cutoff])
         else: 
             n_c = log10(kwargs["n_c"])
-            plt.plot([n_1,n_c,n_cutoff],[sn_0,sn_c,sn_cutoff])
+            plt.plot([n_1,n_c,n_cutoff],[sn_0,sn_c,sn_cutoff], color='C3',alpha=0.005)
         
         plt.savefig("sn_curves")
 ##################
