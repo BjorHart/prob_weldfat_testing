@@ -7,33 +7,15 @@ from math import *
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-
+from scipy.stats import norm, halfnorm,lognorm,uniform
+import copy
+from input_json import *
 """ original weldfat code for comparison with probabilistic weldfat results"""
 
-
-time_ = [4.0 * i / 200 for i in range(200 + 1)]
-series = np.array([0.2 + 0.5 * sin(t) + 0.2 * cos(10*t) + 0.2 * sin(4*t) for t in time_])*1e2
-series = list(series)
-input_serie_2 = {}
-input_serie_2['method'] = 'Nominal Fatigue' 
-input_serie_2['fatigue_class'] = {
-    'fat': 100,#["normal",100.0,10],
-    'fatFact': 1.0,
-    'n_fat': 2000000, #["normal",2000000.0,10],
-    'n_c': 10000000.0,
-    'm_1': 5.0,
-    'm_2': 22.0,
-    }
-input_serie_2['stress_unit'] = 'MPa'
-input_serie_2['serie_data'] = {'series': series}
-input_serie_2['mean_stress_theory'] = {'theory': 'Goodman',
-        'ultimate_limit': 500.}
-json_input = json.dumps(input_serie_2)
 timestamp=1
 _componentId="aaa"
 response=[""]
 
-fat = np.random.normal(100,10,size=1000)
 
 def WeldFat(timestamp, _componentId, json_input,response):
     """Iterate cycles in the series.
@@ -138,13 +120,13 @@ def WeldFat(timestamp, _componentId, json_input,response):
     sn_cutoff = 10 ** (log10(sn_c) - (log10(n_cutoff)-log10(n_c))/m_2)
    
    #plot sn-curve
-    sn_s = [sn_1,sn_0,sn_c,sn_cutoff]
-    log_sn_s = [log10(s) for s in sn_s]
-    n_s = [n_0,n_0,n_c,n_cutoff]
-    log_n_s = [log10(n) for n in n_s]
-    plt.plot(log_n_s,log_sn_s)
-    plt.savefig("deterministic_SN_curve")
-    plt.close()
+    # sn_s = [sn_1,sn_0,sn_c,sn_cutoff]
+    # log_sn_s = [log10(s) for s in sn_s]
+    # n_s = [n_0,n_0,n_c,n_cutoff]
+    # log_n_s = [log10(n) for n in n_s]
+    # plt.plot(log_n_s,log_sn_s)
+    # plt.savefig("deterministic_SN_curve")
+    # plt.close()
 
     # Get mean stress theory parameter
     if 'mean_stress_theory' in json_obj:
@@ -337,10 +319,11 @@ def WeldFat(timestamp, _componentId, json_input,response):
     dmg_list = []
     for key,value in res_dict["result_per_bin"].items():
         dmg_list.append(value["damage_per_bin"])
-    print("dmg per bin: ", dmg_list)
-    print("..........")
-    print("total damage: ",sum(dmg_list))
+    # print("dmg per bin: ", dmg_list)
+    # print("..........")
+    # print("total damage: ",sum(dmg_list))
     # insert the result to the 'Result' database
+    return dmg_list,sn_0,sn_c,sn_cutoff,n_c
     
 def apply_mean_stress_theory(mean_stress_theory,sm,rng,sn_0,r_m,r_y):
     if mean_stress_theory == 'Goodman':
@@ -365,7 +348,92 @@ def apply_mean_stress_theory(mean_stress_theory,sm,rng,sn_0,r_m,r_y):
         pass
     return rng
 
+def monte_carlo(timestamp,_componentId,response,samples:int=1000,**kwargs):
+    dists = {"normal":norm,"halfnormal":halfnorm, "lognormal": lognorm, "uniform":uniform}
+    distributed=False
+
+    for key,value in kwargs["fatigue_class"].items():
+        if type(value)==list and (value[0] in ["normal","halfnormal","lognormal","uniform"]):
+            distributed=True # triggers sampling process
+            kwargs["fatigue_class"][key] = list(dists[value[0]](loc=value[1],scale=value[2]).rvs(samples))
+    
+    if distributed:
+        kwargs_sample = copy.deepcopy(kwargs) # kwargs for sampling process
+        results = {}
+        results["dmg_list"] = []
+        results["sn_0"] = []
+        results["sn_c"] = []
+        results["sn_cutoff"] = []
+        results["n_c"] = []
+        for i in range(samples):
+            for key,value in kwargs["fatigue_class"].items():
+                if type(value)==list:
+                    kwargs_sample["fatigue_class"][key] = value[i]
+            dmg_list,sn_0,sn_c,sn_cutoff,n_c = WeldFat(timestamp, _componentId, json.dumps(kwargs_sample),response)
+            results["dmg_list"].append(dmg_list)
+            results["sn_0"].append(sn_0)
+            results["sn_c"].append(sn_c)
+            results["sn_cutoff"].append(sn_cutoff)
+            results["n_c"].append(n_c)
+
+    else:
+        results = WeldFat(timestamp, _componentId, json.dumps(kwargs),response)
+
+    return results    
+
+
+def plot_trace(results):
+    dmg_list = np.array(results["dmg_list"])
+    acc_dmg_list = np.sum(dmg_list,axis=1)
+    sn_0 = np.array(results["sn_0"])
+    sn_c = np.array(results["sn_c"])
+    sn_cutoff = np.array(results["sn_cutoff"])
+    sn_0 = [log10(i) for i in sn_0]
+    sn_c = [log10(i) for i in sn_c]
+    sn_cutoff = [log10(i) for i in sn_cutoff]
+
+    n_cutoff = log10(1e10)
+    n_c = np.array(results["n_c"])
+    n_c = [log10(i) for i in n_c]
+    n_1 = log10(1)
+    #n_1 = results["n_1"]
+    
+
+    plt.hist(acc_dmg_list,bins=100)[:2]
+    mean = acc_dmg_list.mean()
+    std = acc_dmg_list.std()
+
+    print("mean: ",mean, "std: ",std) 
+    
+    x_coords =[mean,mean-std,mean+std]
+    for x in x_coords:
+        plt.axvline(x=x, color="red")
+        plt.text(x,5,x,rotation=90)
+    
+    plt.savefig("hist_orig_weldfat")
+    plt.close()
+
+    for i in range(len(sn_0)):
+        plt.plot([n_1,n_c[i],n_cutoff],[sn_0[i],sn_c[i],sn_cutoff[i]],color='C3',alpha=0.005)
+    #plt.xlim([6,7])
+    plt.savefig("sn_curves_orig_weldfat")
+    plt.close()  
+
+    plt.plot(n_c)
+    plt.savefig("sn_c")
+    plt.close
+
+
+
 start = time.time()
-WeldFat(timestamp, _componentId, json_input,response)
+#WeldFat(timestamp, _componentId, json_input,response)
+results = monte_carlo(timestamp,_componentId,response,**json.loads(input()))
+
 end = time.time()
 print(end - start)
+if len(results["dmg_list"]):
+    plot_trace(results)
+
+
+
+

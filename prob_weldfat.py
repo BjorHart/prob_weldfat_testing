@@ -5,15 +5,15 @@ import pymc3 as pm
 import matplotlib.pyplot as plt
 from theano.ifelse import ifelse
 import json
-from input import *
+from input_json import *
 from WeldFat_Pref import *
 import rainflow
 import time
 from math import *
 
-theano.config.optimizer='fast_compile'
-theano.config.exception_verbosity='high'
-theano.config.compute_test_value = 'warn'
+#theano.config.optimizer='fast_compile'
+#theano.config.exception_verbosity='high'
+#theano.config.compute_test_value = 'warn'
 
 def unpack_weldfat(json_input):
     """
@@ -234,6 +234,7 @@ def calculate_weldfat(**kwargs):
     with pm.Model() as model:
         dists = {"normal":pm.Normal,"halfnormal":pm.HalfNormal, "lognormal": pm.Lognormal, "uniform":pm.Uniform}
         distributed=False
+
         for key,value in kwargs.items():
             if type(value)==list and (value[0] in ["normal","halfnormal","lognormal","uniform"]):
                 distributed=True # triggers sampling process
@@ -249,7 +250,8 @@ def calculate_weldfat(**kwargs):
         acc_dmg =pm.Deterministic('acc_dmg',tt.sum(dmg_per_bin))
         trace = []
         if distributed:
-            trace = pm.sample(target_accept=0.9)
+            #trace = pm.sample(draws=1000,step=pm.NUTS())
+            trace = pm.sample_prior_predictive()
             dmg_per_bin = trace["dmg_per_bin"]
             acc_dmg = trace["acc_dmg"]
         else:
@@ -293,11 +295,17 @@ def plot_trace(trace,kwargs):
         sn_cutoff = [log10(i) for i in sn_cutoff]
         n_cutoff = log10(1e10)
         n_1 = log10(1)
-        if "n_c" in trace.varnames:
-            n_c = trace["n_c"].T[0]
-            n_c = [log10(i) for i in n_c]
-            for i in sn_0:
-                plt.plot([n_1,n_c[i],n_cutoff],[sn_0,sn_c,sn_cutoff])
+        if not type(trace)==dict:
+            if "n_c" in trace.varnames:
+                n_c = trace["n_c"].T[0]
+                n_c = [log10(i) for i in n_c]
+                for i in sn_0:
+                    plt.plot([n_1,n_c[i],n_cutoff],[sn_0,sn_c,sn_cutoff])
+        elif "n_c" in trace.keys():
+                n_c = trace["n_c"].T[0]
+                n_c = [log10(i) for i in n_c]
+                for i in sn_0:
+                    plt.plot([n_1,n_c[i],n_cutoff],[sn_0,sn_c,sn_cutoff])
         else: 
             n_c = log10(kwargs["n_c"])
             plt.plot([n_1,n_c,n_cutoff],[sn_0,sn_c,sn_cutoff], color='C3',alpha=0.005)
@@ -308,6 +316,7 @@ def plot_trace(trace,kwargs):
     else:
         print("no trace to plot")
         
+
 
 
 start = time.time()
