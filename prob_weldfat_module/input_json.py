@@ -5,8 +5,8 @@ import json
 
 """ Input json to be imported to prob_weldfat """
 
-time = [4.0 * i / 200 for i in range(200 + 1)]
-series = np.array([0.2 + 0.5 * sin(t) + 0.2 * cos(10*t) + 0.2 * sin(4*t) for t in time])*1e2
+time_ = [4.0 * i / 200 for i in range(200 + 1)]
+series = np.array([0.2 + 0.5 * sin(t) + 0.2 * cos(10*t) + 0.2 * sin(4*t) for t in time_])*1e2
 series = list(series)
 
 input_json = {}
@@ -22,8 +22,8 @@ input_json['fatigue_class'] = {
 #input_json['stress_data'] = {'rng': 1, 'cycles': 1}
 input_json['stress_unit'] = 'MPa'
 input_json['serie_data'] = {'series': series}
-input_json['mean_stress_theory'] = {'theory': 'Goodman',
-        'ultimate_limit': 500.}
+input_json['mean_stress_theory'] = {'theory': 'Soderberg',
+        'yield_limit': {"d":"normal","m":500.,"sd":10}}
 input_json = json.dumps(input_json,indent=4,sort_keys=True)
 
 print(input_json)

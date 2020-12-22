@@ -3,7 +3,7 @@ import json
 
 import jsonschema
 
-print(json.dumps(json.loads(input_json),indent=4,sort_keys=True))
+
 
 
 weldfat = {
@@ -703,18 +703,141 @@ weldfat = {
                     "examples": [
                         500
                     ],
-                    "minimum": 0,
-                    "title": "The ultimate_limit Schema",
-                    "type": "number"
+                    "oneOf": [
+                        {
+                            "$id": "#/properties/fatigue_class/properties/fat/items/anyOf/0",
+                            "type": "number",
+                            "title": "The first anyOf schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "examples": [
+                                100
+                            ],
+                            "minimum":0
+                        },
+                        {
+                            "$id": "#/properties/fatigue_class/properties/fat/items/anyOf/1",
+                            "type": "object",
+                            "title": "The second anyOf schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "examples": [
+                                {
+                                    "d": "normal",
+                                    "m": 100.0,
+                                    "sd": 10
+                                }
+                            ],
+                            "required": [
+                                "d",
+                                "m",
+                                "sd"
+                            ],
+                            "properties": {
+                                "d": {
+                                    "$id": "#/properties/fatigue_class/properties/fat/items/anyOf/1/properties/d",
+                                    "type": "string",
+                                    "title": "The d schema",
+                                    "description": "An explanation about the purpose of this instance.",
+                                    "examples": [
+                                        "normal"
+                                    ],
+                                    "enum":["normal","lognormal","uniform","halfnormal"]
+                                    },
+                                "m": {
+                                    "$id": "#/properties/fatigue_class/properties/fat/items/anyOf/1/properties/m",
+                                    "type": "number",
+                                    "title": "The m schema",
+                                    "description": "An explanation about the purpose of this instance.",
+                                    "default": 0.0,
+                                    "examples": [
+                                        100.0
+                                    ]
+                                },
+                                "sd": {
+                                    "$id": "#/properties/fatigue_class/properties/fat/items/anyOf/1/properties/sd",
+                                    "type": "integer",
+                                    "title": "The sd schema",
+                                    "description": "An explanation about the purpose of this instance.",
+                                    "default": 0,
+                                    "minimum":0,
+                                    "examples": [
+                                        10
+                                    ]
+                                }
+                            },
+                            "additionalProperties": False,
+                            "additionalItems":False
+                            }
+                        ]
                 },
                 "yield_limit": {
                     "description": "Yield Limit",
                     "examples": [
                         200
                     ],
-                    "minimum": 0,
-                    "title": "The yield_limit Schema",
-                    "type": "number"
+                    "oneOf": [
+                        {
+                            "$id": "#/properties/fatigue_class/properties/fat/items/anyOf/0",
+                            "type": "number",
+                            "title": "The first anyOf schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "examples": [
+                                100
+                            ],
+                            "minimum":0
+                        },
+                        {
+                            "$id": "#/properties/fatigue_class/properties/fat/items/anyOf/1",
+                            "type": "object",
+                            "title": "The second anyOf schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "examples": [
+                                {
+                                    "d": "normal",
+                                    "m": 100.0,
+                                    "sd": 10
+                                }
+                            ],
+                            "required": [
+                                "d",
+                                "m",
+                                "sd"
+                            ],
+                            "properties": {
+                                "d": {
+                                    "$id": "#/properties/fatigue_class/properties/fat/items/anyOf/1/properties/d",
+                                    "type": "string",
+                                    "title": "The d schema",
+                                    "description": "An explanation about the purpose of this instance.",
+                                    "examples": [
+                                        "normal"
+                                    ],
+                                    "enum":["normal","lognormal","uniform","halfnormal"]
+                                    },
+                                "m": {
+                                    "$id": "#/properties/fatigue_class/properties/fat/items/anyOf/1/properties/m",
+                                    "type": "number",
+                                    "title": "The m schema",
+                                    "description": "An explanation about the purpose of this instance.",
+                                    "default": 0.0,
+                                    "examples": [
+                                        100.0
+                                    ]
+                                },
+                                "sd": {
+                                    "$id": "#/properties/fatigue_class/properties/fat/items/anyOf/1/properties/sd",
+                                    "type": "integer",
+                                    "title": "The sd schema",
+                                    "description": "An explanation about the purpose of this instance.",
+                                    "default": 0,
+                                    "minimum":0,
+                                    "examples": [
+                                        10
+                                    ]
+                                }
+                            },
+                            "additionalProperties": False
+                            }
+                        ]
                 }
             },
             "title": "The mean_stress_theory Schema",
@@ -880,9 +1003,4 @@ weldfat = {
     "type": "object"
 }
 
-schema= json.dumps(weldfat,indent=4,sort_keys=True)
-print(schema)
-
-
-jsonschema.validate(json.loads(input_json),json.loads(schema))
-print("hei")
+weldfat_schema = json.dumps(weldfat,indent=4,sort_keys=True)
