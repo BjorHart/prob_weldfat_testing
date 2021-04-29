@@ -1,5 +1,6 @@
+# Bayesian Inference Module
 
-
+## Contents
 -   [Introduction](#Introduction)
 -   [Input data for Bayesian Inference module](#Input-data-for-Bayesian-Inference-module)
 	-  [Bayesian Inference data object](#Bayesian-Inference-data-object)
@@ -11,7 +12,10 @@
 
 
 # Introduction
+
 Bayesian Inference is a statistical method in which Bayes Rule is used to update a hypothesis based on observed data. With this module, a user can obtain just this, through a prior belief of a parameters distribution and observed data on that parameter.
+
+
 
 # Input data for Bayesian Inference module
 
@@ -19,8 +23,9 @@ All input data for the Bayesian Inference module is send within the `POST` paylo
 
 ### Bayesian Inference Data Object
 
-*Important*: the "data" object in the Bayesian Inference module is actually a list of objects. Each object in the list needs to have the below structure. Each object specifies one inference model. For each of the below array-parameters, a seperate inference is performed. This way the user can infer multiple parameters with the same prior distributions simoultainously. See tutorial for further comments.
+*Important*: the "data" object in the Bayesian Inference module is actually a list of objects. Each object in the list needs to have the below structure. Each object specifies one inference model. 
 
+For each of the specified models, an array of parameters and observed values can be inferred, based on the same model. See Tutorials for further comments.
 
 The module can be called with either one or several objects.
 
@@ -44,20 +49,21 @@ The module can be called with either one or several objects.
 
 |   |Type|Description|Required|
 |---|----|-----------|--------|
-|**posterior_summary_95**|`object`|Object with a 95% confidence summary of all inferred distributions, se posterior_summary object for more information.
-|**posterior_summary_60**|`object`|Object with a 60% confidence summary of all inferred distributions, se posterior_summary object for more information.
-|**predictive_distributions**|`string`|Object with posterior distribution information on the inferred distributions, se predictive_distributions object for more information.
+|**posterior_summary_95**|`object`|Object with a 95% confidence summary of all inferred distributions, see posterior_summary object for more information.
+|**posterior_summary_60**|`object`|Object with a 60% confidence summary of all inferred distributions, see posterior_summary object for more information.
+|**predictive_distributions**|`object`|Object with posterior distribution information on the inferred distributions, se predictive_distributions object for more information.
 
-#### posterior_summary_95 and posterior_summary_60 objects
+## posterior_summary_60 (and posterior_summary_95 objects)
  
 |   |Type|Description|Required|
 |---|----|-----------|--------|
-|**posterior_summary_95**|`object`|Object with a 95% confidence summary of the all inferred distributions, se posterior_summary object for more information.
-|**posterior_summary_60**|`object`|Object with a 60% confidence summary of the all inferred distributions, se posterior_summary object for more information.
-|**predictive_distributions**|`string`|Object with posterior distribution information on the inferred distributions, se predictive_distributions object for more information.
+|**hdi_20%**|`object`|Highest density interval for all parameters, low 
+|**hdi_80%**|`object`|Highest density interval for all parameters, high
+|**mean**|`object`|mean of all parameters
+|**sd**|`object`|sd of all parameters
 
 
-#### predictive_distributions object
+## predictive_distributions object
  
 |   |Type|Description|Required|
 |---|----|-----------|--------|
@@ -89,7 +95,7 @@ response = requests.request("GET", url, headers=req_type, data=json.dumps(login)
 # Save the token
 token = response.text
 
-######################## Specify input for Time Series Prediction ##############################
+######################## Specify input for Bayesian Inference ##############################
   
 
 df = %YOUR DATA: A DICTIONARY WITH KEYS = ["ds","y"]%
