@@ -7,7 +7,7 @@
 	-  [Time Series Prediction data object](#Time-Series-Prediction-data-object)
 	- [df object](#df-object)
 	- [custom_seasonalities-object](#custom_seasonalities-object)
--   [Output data from Time Series Prediction module](#Output-data-from-Bayesian-Inference-module)
+-   [Output data from Time Series Prediction module](#Output-data-from-Time-Series-Prediction-module)
 
 -   [Tutorials](#Tutorials)
 
