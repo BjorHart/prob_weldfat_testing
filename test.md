@@ -53,7 +53,7 @@ All input data for the Time Series Prediction module is sent within the `POST` p
   
 
 
-# Output object from Time Series Prediction module
+# Output data from Time Series Prediction module
 The result will contain the following properties:
 
 |   |Type|Description||
